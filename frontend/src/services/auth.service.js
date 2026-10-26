@@ -12,10 +12,8 @@ const register_req = async (username, email, password) => {
 const login_req = async (email, password) => {
   const response = await axios.post(API_BASE_URL + '/auth/signin', {email, password})
 
-  if (response.data.token) {
-      console.log(response.data)
+  if (response.data && response.data.token) {
       localStorage.setItem("user", JSON.stringify(response.data));
-      window.location.reload()
   }
 
   return response;

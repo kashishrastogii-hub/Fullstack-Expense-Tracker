@@ -24,54 +24,77 @@
 
 ## How to run?
 
-### Step 1: Fork and Clone the Repository
+### Prerequisites
+- Java 21+
+- Node.js 16+ and npm
+- MySQL 8+ (or use Docker)
 
-1. Fork the repository to your GitHub account.
-
-2. Clone the forked repository to your local machine.
+### Step 1: Clone the Repository
 
 ```sh
-git clone https://github.com/<your-username>/Fullstack-Expense-Tracker
+git clone https://github.com/kashishrastogii-hub/Fullstack-Expense-Tracker
+cd Fullstack-Expense-Tracker
 ```
 
-### Step 2: Setting up e-mail and database configurations
+### Step 2: Start the Database (optional with Docker)
 
-- Configure the following credentials in the [`application.properties`](https://github.com/DharshiBalasubramaniyam/Fullstack-Expense-Tracker/blob/main/backend/src/main/resources/application.properties) file.
+If you don't have MySQL running, you can use Docker Compose:
 
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/YOUR_DATABASE_NAME
-spring.datasource.username=YOUR_USERNAME
-spring.datasource.password=YOUR_PASSWORD
-
-spring.mail.username=YOUR_USERNAME
-spring.mail.password=YOUR_PASSWORD
+```sh
+docker-compose up -d
 ```
 
-### Step 3: Run the backend.
+This will start a MySQL instance on `localhost:3306` with database `expense_tracker` and root password `root`.
 
-- Run the backend application. It will automatically create the required tables. 
-- Add some custom data manually in the [categories](https://github.com/DharshiBalasubramaniyam/Fullstack-Expense-Tracker/blob/7ecea71aaeca4e26a4aafd02fd602abe4d9da67d/backend/src/main/java/com/fullStack/expenseTracker/models/Category.java#L13) table for both [type](https://github.com/DharshiBalasubramaniyam/Fullstack-Expense-Tracker/blob/7ecea71aaeca4e26a4aafd02fd602abe4d9da67d/backend/src/main/java/com/fullStack/expenseTracker/models/TransactionType.java#L13) `expense` and `income`.
-- To start as admin, Insert a new user manually with role admin in [`users`](https://github.com/DharshiBalasubramaniyam/Fullstack-Expense-Tracker/blob/7ecea71aaeca4e26a4aafd02fd602abe4d9da67d/backend/src/main/java/com/fullStack/expenseTracker/models/User.java#L20) table.
+### Step 3: Configure Backend
 
-### Step 4: Run the frontend
-
-1. Navigate to [frontend direcory](https://github.com/DharshiBalasubramaniyam/Fullstack-Expense-Tracker/tree/main/frontend).
-```
-cd ./frontend
+1. Navigate to the backend directory:
+```sh
+cd backend
 ```
 
-2. Install dependencies.
+2. Copy the example env file and update values:
+```sh
+cp .env.example .env
 ```
+
+Or configure `src/main/resources/application.properties`. You can override via environment variables (see `.env.example`).
+
+3. Run the backend (it will automatically create/update tables with `ddl-auto=update`):
+```sh
+./mvnw spring-boot:run
+```
+On Windows, use `mvnw.cmd spring-boot:run`.
+
+The backend runs on [`http://localhost:8080`](http://localhost:8080). API base path is `/mywallet`.
+
+**Initial setup notes:**
+- Add categories manually in the `categories` table for both `expense` and `income` types.
+- To create an admin user, insert a user with role `ROLE_ADMIN` into the `users` table (or adjust via data seeding).
+
+### Step 4: Configure and Run the Frontend
+
+1. Navigate to the frontend directory:
+```sh
+cd frontend
+```
+
+2. Copy the example env file (optional):
+```sh
+cp .env.example .env
+```
+
+3. Install dependencies:
+```sh
 npm install
 ```
 
-3. Run the app.
-```
+4. Run the app:
+```sh
 npm start
 ```
 
-Access the application at [`http://localhost:3000/`](http://localhost:3000/).
-To get started create a new account using your email.
+Access the application at [`http://localhost:3000/`](http://localhost:3000/). Create a new account to get started.
 
 ## Screenshots
 
