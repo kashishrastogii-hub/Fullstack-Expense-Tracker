@@ -51,6 +51,9 @@ public class WebSecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    @Autowired
+    private RateLimitFilter rateLimitFilter;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
@@ -60,6 +63,8 @@ public class WebSecurityConfig {
                         auth.requestMatchers("/mywallet/auth/**").permitAll()
                                 .requestMatchers("/mywallet/transactiontype/**").permitAll()
                                 .requestMatchers("/mywallet/category/**").permitAll()
+                                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                                .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                                 .requestMatchers("/mywallet/transaction/**").permitAll()
                                 .requestMatchers("/mywallet/user/**").permitAll()
                                 .anyRequest().authenticated()
@@ -67,6 +72,7 @@ public class WebSecurityConfig {
 
         http.authenticationProvider(authenticationProvider());
 
+        http.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
