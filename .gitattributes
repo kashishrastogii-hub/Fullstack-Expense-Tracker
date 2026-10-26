@@ -1,0 +1,3 @@
+# Keep shell scripts LF so they run inside the Linux containers even when the
+# repository is cloned on Windows (core.autocrlf=true would otherwise add CRLF).
+*.sh text eol=lf

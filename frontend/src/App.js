@@ -56,7 +56,7 @@ function App() {
                             <Route path="/auth/success-registration" element={<RegistrationSuccess />} />
                             <Route path='/auth/forgetpassword/verifyEmail' element={<ForgotPasswordEmailVerfication />} />
                             <Route path='/auth/forgotPassword/verifyAccount/:email' element={<ForgotPasswordCodeVerification />} />
-                            <Route path='/auth/forgotPassword/resetPassword/:email' element={<ForgotPasswordChangePassword />} />
+                            <Route path='/auth/forgotPassword/resetPassword/:email/:code' element={<ForgotPasswordChangePassword />} />
                         </Route>
 
                         <Route element={<ProtectedRoute isAllowed={AuthService.getCurrentUser() && AuthService.getCurrentUser().roles.includes("ROLE_USER")} />}>

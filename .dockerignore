@@ -1,0 +1,31 @@
+# Version control and editor files
+.git
+.gitignore
+.idea
+.vscode
+*.iml
+*.swp
+
+# Dependencies and build output (rebuilt inside the image)
+**/node_modules
+frontend/build
+backend/target
+backend/**/target
+
+# Local secrets and runtime data
+**/.env
+**/*.env.local
+backend/uploads
+uploads
+
+# Logs and OS noise
+*.log
+logs
+.DS_Store
+Thumbs.db
+
+# Docker / docs
+Dockerfile
+docker-compose.yml
+.dockerignore
+README.md

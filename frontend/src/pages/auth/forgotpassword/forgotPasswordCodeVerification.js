@@ -22,7 +22,7 @@ function ForgotPasswordCodeVerification() {
                 console.log(response.data.message);
                 if (response.data.status === 'SUCCESS') {
                     setResponseError("")
-                    navigate(`/auth/forgotPassword/resetPassword/${email}`);
+                    navigate(`/auth/forgotPassword/resetPassword/${email}/${data.code}`);
                 } else {
                     setResponseError('Verification failed: Something went wrong!');
                 }
@@ -97,7 +97,7 @@ function ForgotPasswordCodeVerification() {
                     {formState.errors.code && <small>{formState.errors.code.message}</small>}
                 </div>
 
-                <div className='msg' style={{fontWeight: 600, fontStyle: 'italic'}}>Please not that the verification code will be expired with in 15 minutes!</div>
+                <div className='msg' style={{fontWeight: 600, fontStyle: 'italic'}}>Please note that the verification code expires in 15 minutes.</div>
                 <br/>
 
                 <div className='input-box'>
@@ -107,7 +107,7 @@ function ForgotPasswordCodeVerification() {
                 </div>
 
                 <br/>
-                <div className='msg'>Having problems? <span style={{cursor: 'pointer'}} onClick={resendCode} className='inline-link'>{isLoading ? "Sending code" : 'Resend code'}</span></div>
+                <div className='msg'>Having problems? <span style={{cursor: 'pointer'}} onClick={resendCode} className='inline-link'>{isSending ? "Sending code..." : 'Resend code'}</span></div>
             </form>
         </div>
     );

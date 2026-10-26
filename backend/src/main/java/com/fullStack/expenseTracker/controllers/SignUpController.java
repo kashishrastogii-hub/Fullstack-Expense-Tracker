@@ -36,7 +36,7 @@ public class SignUpController {
 
     @GetMapping("/signup/resend")
     public ResponseEntity<ApiResponseDto<?>> resendVerificationCode(@Param("email") String email)
-            throws UserNotFoundException, MessagingException, UnsupportedEncodingException, UserServiceLogicException {
+            throws UserNotFoundException, MessagingException, UnsupportedEncodingException, UserServiceLogicException, UserVerificationFailedException {
         return authService.resendVerificationCode(email);
     }
 

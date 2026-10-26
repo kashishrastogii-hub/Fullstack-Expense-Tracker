@@ -67,10 +67,11 @@ const resendResetPasswordVerificationCode = async(email) => {
   })
 }
 
-const resetPassword = async (email, password) => {
+const resetPassword = async (email, password, code) => {
   return await axios.post(API_BASE_URL + '/auth/forgotPassword/resetPassword', {
       email: email, 
       currentPassword: "",
+      code: code,
       newPassword: password
   })
 }

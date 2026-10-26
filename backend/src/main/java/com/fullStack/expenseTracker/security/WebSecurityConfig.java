@@ -68,7 +68,13 @@ public class WebSecurityConfig {
                                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                                 .requestMatchers("/api/transaction/**").permitAll()
                                 .requestMatchers("/api/user/**").permitAll()
-                                .anyRequest().authenticated()
+                                // Remaining API endpoints still require a JWT; role checks are done
+                                // with @PreAuthorize on the controllers.
+                                .requestMatchers("/api/**").authenticated()
+                                // The React SPA (index.html, /static/**, client-side routes) must be
+                                // loadable before signing in. Authorization happens in the SPA and in
+                                // the API; no server-side data is exposed by these files.
+                                .anyRequest().permitAll()
                 );
 
         http.authenticationProvider(authenticationProvider());

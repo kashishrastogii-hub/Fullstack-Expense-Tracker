@@ -32,11 +32,12 @@ function Register() {
             },
             (error) => {
                 if (error.response) {
-                    const resMessage = error.response.data.response
-                    setResponseError(resMessage);
-                    console.log(error.response.data);
+                    setResponseError(
+                        error.response.data.response ||
+                        "Registration failed: please review your details and try again."
+                    );
                 }else {
-                    setResponseError("Registration failed: Something went wrong!")
+                    setResponseError("Registration failed: unable to reach the server.")
                 }
                 
             }

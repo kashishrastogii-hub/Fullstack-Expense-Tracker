@@ -28,6 +28,9 @@ logs/
 # Uploads (local)
 backend/uploads/
 
+# React build copied into the jar at Docker build time
+backend/src/main/resources/static/
+
 # Misc
 *.swp
 *~

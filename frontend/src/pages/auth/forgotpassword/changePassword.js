@@ -7,7 +7,7 @@ import AuthService from '../../../services/auth.service';
 function ForgotPasswordChangePassword() {
     const navigate = useNavigate();
     
-    const { email } = useParams(); 
+    const { email, code } = useParams(); 
 
     const {register, handleSubmit, watch, formState} = useForm();
     const password = useRef({});
@@ -19,9 +19,8 @@ function ForgotPasswordChangePassword() {
 
     const onSubmit = async (data) => {
         setIsLoading(true);     
-        await AuthService.resetPassword(email, data.password).then(
+        await AuthService.resetPassword(email, data.password, code).then(
             (response) => {
-                console.log(response);
                 if (response.data.status === "SUCCESS"){
                     setResponseError("");
                     navigate(`/auth/login`);
@@ -32,11 +31,12 @@ function ForgotPasswordChangePassword() {
             },
             (error) => {
                 if (error.response) {
-                    const resMessage = error.response.data.response
-                    setResponseError(resMessage);
-                    console.log(error.response);
+                    setResponseError(
+                        error.response.data.response ||
+                        "Reset password failed: please request a new code and try again."
+                    );
                 }else {
-                    setResponseError("Reset password failed: Something went wrong!")
+                    setResponseError("Reset password failed: unable to reach the server.")
                 }
                 
             }

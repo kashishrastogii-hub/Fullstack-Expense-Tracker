@@ -11,31 +11,26 @@ const UserRegistrationVerfication = () => {
     const {register, handleSubmit, formState} = useForm();
 
     const [response_error, setResponseError] = useState("");
+    const [resendStatus, setResendStatus] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isSending, setIsSending] = useState(false);
 
     const onSubmit = async (data) => {
         setIsLoading(true)        
-        const response = await AuthService.verifyRegistrationVerificationCode(data.code).then(
+        await AuthService.verifyRegistrationVerificationCode(data.code).then(
             (response) => {
-                console.log(response.data);
                 if (response.data.status === "SUCCESS") {
-                    console.log(response.data);
                     navigate('/auth/success-registration')
                     setResponseError("");
                 }else {
-                    setResponseError("Verification failed: Cannot resend email!")
+                    setResponseError("Verification failed: please check the code and try again.")
                 }
-                
             },
             (error) => {
                 if (error.response) {
-                    const resMessage = error.response.data.response;
-                    setResponseError(resMessage);
-                    console.log(error);
+                    setResponseError(error.response.data.response);
                 }else {
-                    console.log(error);
-                    setResponseError("Verification failed: Cannot resend email!")
+                    setResponseError("Verification failed: unable to reach the server.")
                 }
             }
           );
@@ -43,17 +38,22 @@ const UserRegistrationVerfication = () => {
     }
 
     const resendCode = async() =>{
-        setIsSending(true)         
-        const response = await AuthService.resendRegistrationVerificationCode(email).then(
+        setIsSending(true)
+        setResendStatus("")
+        await AuthService.resendRegistrationVerificationCode(email).then(
             (response) => {
-                console.log(response.data.message);
                 setResponseError("");
+                setResendStatus("A new verification code has been sent to " + email + ".");
             },
             (error) => {
-                setResponseError("cannot send email again!");
+                setResendStatus("");
+                setResponseError(
+                    error.response?.data?.response ||
+                    "We could not resend the verification email. Try again in a moment."
+                );
             }
           );
-          setIsSending(false)  
+        setIsSending(false)  
     }
 
   return (
@@ -61,11 +61,14 @@ const UserRegistrationVerfication = () => {
             <form className="auth-form"  onSubmit={handleSubmit(onSubmit)}>
                 <h2>Verify your email</h2><br/>
                 {
-                    isSending ? 
+                    isSending ?
                         <div className='msg'>Sending email to {email}...</div> 
                         : (response_error==="") 
                         ? <div className='msg'>The verification code has been sent to <span style={{fontWeight:600,  color:'green'}}>{email}</span>.</div>
                         : <></>
+                }
+                {
+                    (resendStatus!=="") && <div className='msg' style={{color:'green'}}>{resendStatus}</div>
                 }
                 {
                     (response_error!=="") && <p>{response_error}</p>
@@ -75,6 +78,7 @@ const UserRegistrationVerfication = () => {
                     <input 
                     placeholder='Enter verification code'
                         type='text'
+                        inputMode='numeric'
                         {...register('code', {
                             required: "Code is required!",
                         })}
@@ -82,7 +86,7 @@ const UserRegistrationVerfication = () => {
                     {formState.errors.code && <small>{formState.errors.code.message}</small>}
                 </div>
 
-                <div className='msg' style={{fontWeight: 600, fontStyle: 'italic'}}>Please not that the verification code will be expired with in 15 minutes!</div>
+                <div className='msg' style={{fontWeight: 600, fontStyle: 'italic'}}>Please note that the verification code expires in 15 minutes.</div>
                 <br/>
 
                 <div className='input-box'>
@@ -92,7 +96,7 @@ const UserRegistrationVerfication = () => {
                 </div>
 
                 <br/>
-                <div className='msg'>Having problems? <span style={{cursor: 'pointer'}} onClick={resendCode} className='inline-link'>{isLoading ? "Sending code" : 'Resend code'}</span></div>
+                <div className='msg'>Having problems? <span style={{cursor: 'pointer'}} onClick={resendCode} className='inline-link'>{isSending ? "Sending code..." : 'Resend code'}</span></div>
             </form>
     </div>
   );

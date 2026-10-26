@@ -19,7 +19,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -27,6 +29,8 @@ import java.util.Set;
 @Component
 @Slf4j
 public class AuthServiceImpl implements AuthService {
+
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     @Autowired
     UserService userService;
@@ -47,6 +51,7 @@ public class AuthServiceImpl implements AuthService {
     private long EXPIRY_PERIOD;
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ResponseEntity<ApiResponseDto<?>> save(SignUpRequestDto signUpRequestDto)
             throws UserAlreadyExistsException, UserServiceLogicException {
         if (userService.existsByUsername(signUpRequestDto.getUserName())) {
@@ -56,28 +61,35 @@ public class AuthServiceImpl implements AuthService {
             throw new UserAlreadyExistsException("Registration Failed: email is already taken!");
         }
 
+        User user;
         try {
-            User user = createUser(signUpRequestDto);
+            user = createUser(signUpRequestDto);
+        } catch (RoleNotFoundException e) {
+            log.error("Registration failed: default role is missing: {}", e.getMessage());
+            throw new UserServiceLogicException("Registration failed: the default role is not configured.");
+        }
+        userRepository.save(user);
 
-            userRepository.save(user);
+        try {
             notificationService.sendUserRegistrationVerificationEmail(user);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponseDto<>(
-                    ApiResponseStatus.SUCCESS, HttpStatus.CREATED,"Verification email has been successfully sent!"
-            ));
-
-        }catch(Exception e) {
-            log.error("Registration failed: {}", e.getMessage());
-            throw new UserServiceLogicException("Registration failed: Something went wrong!");
+        } catch (Exception e) {
+            // Roll back the insert so the address is not left blocked by a half-created account.
+            log.error("Could not send the verification email to {}: {}", user.getEmail(), e.getMessage(), e);
+            throw new EmailDeliveryException(
+                    "We could not send the verification email to " + user.getEmail() +
+                            ". Check the address and try again.", e);
         }
 
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponseDto<>(
+                ApiResponseStatus.SUCCESS, HttpStatus.CREATED, "Verification email has been successfully sent!"
+        ));
     }
 
     @Override
     public ResponseEntity<ApiResponseDto<?>> verifyRegistrationVerification(String code) throws UserVerificationFailedException {
         User user = userRepository.findByVerificationCode(code);
 
-        if (user == null || user.isEnabled()) {
+        if (user == null || user.isEnabled() || user.getVerificationCodeExpiryTime() == null) {
             throw new UserVerificationFailedException("Verification failed: invalid verification code!");
         }
 
@@ -99,58 +111,64 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<ApiResponseDto<?>> resendVerificationCode(String email) throws UserNotFoundException, UserServiceLogicException {
+    public ResponseEntity<ApiResponseDto<?>> resendVerificationCode(String email)
+            throws UserNotFoundException, UserServiceLogicException, UserVerificationFailedException {
 
         User user = userService.findByEmail(email);
 
-        try {
-            user.setVerificationCode(generateVerificationCode());
-            user.setVerificationCodeExpiryTime(calculateCodeExpirationTime());
-            user.setEnabled(false);
-
-            userRepository.save(user);
-            notificationService.sendUserRegistrationVerificationEmail(user);
-
-            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto<>(
-                    ApiResponseStatus.SUCCESS, HttpStatus.OK, "Verification email has been resent successfully!")
-            );
-        }catch(Exception e) {
-            log.error("Registration verification failed: {}", e.getMessage());
-            throw new UserServiceLogicException("Registration failed: Something went wrong!");
+        if (user.isEnabled()) {
+            throw new UserVerificationFailedException(
+                    "This email is already verified. You can log in instead.");
         }
 
+        user.setVerificationCode(generateVerificationCode());
+        user.setVerificationCodeExpiryTime(calculateCodeExpirationTime());
+        userRepository.save(user);
+
+        try {
+            notificationService.sendUserRegistrationVerificationEmail(user);
+        } catch (Exception e) {
+            log.error("Could not resend the verification email to {}: {}", email, e.getMessage(), e);
+            throw new EmailDeliveryException(
+                    "We could not send the verification email to " + email + ". Try again in a moment.", e);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(new ApiResponseDto<>(
+                ApiResponseStatus.SUCCESS, HttpStatus.OK, "Verification email has been resent successfully!"
+        ));
     }
 
     @Override
     public ResponseEntity<ApiResponseDto<?>> verifyEmailAndSendForgotPasswordVerificationEmail(String email) throws UserServiceLogicException, UserNotFoundException {
-        if (userService.existsByEmail(email)) {
-            try {
-                User user = userService.findByEmail(email);
-                user.setVerificationCode(generateVerificationCode());
-                user.setVerificationCodeExpiryTime(calculateCodeExpirationTime());
-                userRepository.save(user);
-
-                notificationService.sendForgotPasswordVerificationEmail(user);
-                return ResponseEntity.status(HttpStatus.ACCEPTED).body(new ApiResponseDto<>(
-                        ApiResponseStatus.SUCCESS,
-                        HttpStatus.ACCEPTED,
-                        "Verification successful: Email sent successfully!"
-                ));
-            } catch (Exception e) {
-                log.error("Reset password email verification failed: {}", e.getMessage());
-                throw new UserServiceLogicException("Verification failed: Something went wrong!");
-            }
+        if (!userService.existsByEmail(email)) {
+            throw new UserNotFoundException("Verification failed: User not found with email " + email + "!");
         }
 
-        throw new UserNotFoundException("Verification failed: User not found with email " + email + "!");
+        User user = userService.findByEmail(email);
+        user.setVerificationCode(generateVerificationCode());
+        user.setVerificationCodeExpiryTime(calculateCodeExpirationTime());
+        userRepository.save(user);
 
+        try {
+            notificationService.sendForgotPasswordVerificationEmail(user);
+        } catch (Exception e) {
+            log.error("Could not send the password reset email to {}: {}", email, e.getMessage(), e);
+            throw new EmailDeliveryException(
+                    "We could not send the password reset email to " + email + ". Try again in a moment.", e);
+        }
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(new ApiResponseDto<>(
+                ApiResponseStatus.SUCCESS,
+                HttpStatus.ACCEPTED,
+                "Verification successful: Email sent successfully!"
+        ));
     }
 
     @Override
     public ResponseEntity<ApiResponseDto<?>> verifyForgotPasswordVerification(String code) throws UserVerificationFailedException, UserServiceLogicException {
         User user = userRepository.findByVerificationCode(code);
 
-        if (user == null) {
+        if (user == null || user.getVerificationCodeExpiryTime() == null) {
             throw new UserVerificationFailedException("Verification failed: invalid verification code!");
         }
 
@@ -161,52 +179,67 @@ public class AuthServiceImpl implements AuthService {
             throw new UserVerificationFailedException("Verification failed: expired verification code!");
         }
 
-        try {
-
-            user.setVerificationCode(null);
-            user.setVerificationCodeExpiryTime(null);
-            userRepository.save(user);
-
-            return ResponseEntity.status(HttpStatus.ACCEPTED).body(new ApiResponseDto<>(
-                    ApiResponseStatus.SUCCESS, HttpStatus.ACCEPTED, "Verification successful: User account has been verified!"
-            ));
-        }catch(Exception e) {
-            log.error("Reset password verification failed: {}", e.getMessage());
-            throw new UserServiceLogicException("Verification failed: Something went wrong!" + e.getMessage());
-        }
+        // The code is intentionally kept until the password is actually reset: the reset
+        // endpoint requires it, so a valid session cannot be forged from an email address.
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(new ApiResponseDto<>(
+                ApiResponseStatus.SUCCESS, HttpStatus.ACCEPTED, "Verification successful: User account has been verified!"
+        ));
     }
 
     @Override
     public ResponseEntity<ApiResponseDto<?>> resetPassword(ResetPasswordRequestDto resetPasswordDto) throws UserNotFoundException, UserServiceLogicException {
-        if (userService.existsByEmail(resetPasswordDto.getEmail())) {
-            try {
-                User user = userService.findByEmail(resetPasswordDto.getEmail());
-
-                if (!resetPasswordDto.getCurrentPassword().isEmpty()) {
-                    if (!passwordEncoder.matches(resetPasswordDto.getCurrentPassword(), user.getPassword())) {
-                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponseDto<>(
-                                ApiResponseStatus.FAILED,
-                                HttpStatus.BAD_REQUEST,
-                                "Reset password not successful: current password is incorrect!!"
-                        ));
-                    }
-                }
-                user.setPassword(passwordEncoder.encode(resetPasswordDto.getNewPassword()));
-
-                userRepository.save(user);
-
-                return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponseDto<>(
-                        ApiResponseStatus.SUCCESS,
-                        HttpStatus.CREATED,
-                        "Reset successful: Password has been successfully reset!"
-                ));
-            } catch (Exception e) {
-                log.error("Resetting password failed: {}", e.getMessage());
-                throw new UserServiceLogicException("Failed to reset your password: Try again later!");
-            }
+        if (!userService.existsByEmail(resetPasswordDto.getEmail())) {
+            throw new UserNotFoundException("User not found with email " + resetPasswordDto.getEmail() + "!");
         }
 
-        throw new UserNotFoundException("User not found with email " + resetPasswordDto.getEmail());
+        try {
+            User user = userService.findByEmail(resetPasswordDto.getEmail());
+            boolean hasCurrentPassword = resetPasswordDto.getCurrentPassword() != null
+                    && !resetPasswordDto.getCurrentPassword().isEmpty();
+
+            if (hasCurrentPassword) {
+                // Authenticated "change password" flow from the settings page
+                if (!passwordEncoder.matches(resetPasswordDto.getCurrentPassword(), user.getPassword())) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponseDto<>(
+                            ApiResponseStatus.FAILED,
+                            HttpStatus.BAD_REQUEST,
+                            "Reset password not successful: current password is incorrect!"
+                    ));
+                }
+            } else {
+                // "Forgot password" flow: the emailed code proves ownership of the account
+                if (!isValidResetCode(user, resetPasswordDto.getCode())) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponseDto<>(
+                            ApiResponseStatus.FAILED,
+                            HttpStatus.BAD_REQUEST,
+                            "Reset password not successful: the verification code is invalid or has expired!"
+                    ));
+                }
+                user.setVerificationCode(null);
+                user.setVerificationCodeExpiryTime(null);
+            }
+
+            user.setPassword(passwordEncoder.encode(resetPasswordDto.getNewPassword()));
+            userRepository.save(user);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponseDto<>(
+                    ApiResponseStatus.SUCCESS,
+                    HttpStatus.CREATED,
+                    "Reset successful: Password has been successfully reset!"
+            ));
+        } catch (Exception e) {
+            log.error("Resetting password failed: {}", e.getMessage());
+            throw new UserServiceLogicException("Failed to reset your password: Try again later!");
+        }
+    }
+
+    private boolean isValidResetCode(User user, String code) {
+        return code != null
+                && !code.isBlank()
+                && user.getVerificationCode() != null
+                && user.getVerificationCode().equals(code)
+                && user.getVerificationCodeExpiryTime() != null
+                && user.getVerificationCodeExpiryTime().getTime() >= System.currentTimeMillis();
     }
 
     private User createUser(SignUpRequestDto signUpRequestDto) throws RoleNotFoundException {
@@ -222,7 +255,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private String generateVerificationCode() {
-        return String.valueOf((int) (Math.random() * 1000000));
+        return String.format("%06d", RANDOM.nextInt(1_000_000));
     }
 
     private Date calculateCodeExpirationTime() {
