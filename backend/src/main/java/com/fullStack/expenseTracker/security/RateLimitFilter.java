@@ -8,12 +8,14 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@Component
+/**
+ * Limits login, signup and password-reset requests to 10 per minute per IP.
+ * Not a Spring bean on purpose, so Boot does not auto-register it twice.
+ */
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private final RateLimitConfig rateLimitConfig;

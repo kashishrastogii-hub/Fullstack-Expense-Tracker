@@ -5,7 +5,7 @@ function Logo() {
     const navigate = useNavigate();
     return (
         <h1 className="logo" onClick={() => {navigate('/')}}>
-            <span className='logo-img'></span>MyWallet
+            <span className='logo-img'></span>PocketWise
         </h1>
 
     )

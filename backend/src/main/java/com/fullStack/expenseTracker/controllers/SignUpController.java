@@ -17,8 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.UnsupportedEncodingException;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
-@RequestMapping("/mywallet/auth")
+@RequestMapping("/api/auth")
 public class SignUpController {
     @Autowired
     private AuthService authService;

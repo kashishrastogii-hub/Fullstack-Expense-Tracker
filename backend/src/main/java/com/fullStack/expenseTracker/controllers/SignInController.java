@@ -27,9 +27,8 @@ import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "http://localhost:3000")
 @RestController
-@RequestMapping("/mywallet/auth")
+@RequestMapping("/api/auth")
 public class SignInController {
     @Autowired
     private AuthenticationManager authenticationManager;

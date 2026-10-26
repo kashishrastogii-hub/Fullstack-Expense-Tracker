@@ -6,9 +6,12 @@
     position: relative;
 }
 .user-panel .user-content {
-    padding: 10.5vh 17px 20px 300px;
+    padding: 95px 26px 40px 298px;
     height: 100vh;
-    overflow-y: scroll;
+    overflow-y: auto;
+    background-color: var(--third);
+    min-height: 100vh;
+    animation: fadeUp 0.35s ease both;
 }
 .t-form {
     background-color: transparent;
@@ -17,10 +20,17 @@
     color: var(--text);
 }
 .t-form input:not([type='submit']) {
-    background-color: var(--hover);
-    border: none;
-    padding: 10px; 
+    background-color: var(--surface);
+    border: 1px solid var(--main);
+    padding: 11px 13px;
+    border-radius: 10px;
     color: var(--text);
+    transition: border var(--transition), box-shadow var(--transition);
+}
+.t-form input:not([type='submit']):focus,
+.t-form select:focus {
+    border-color: var(--second);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.14);
 }
 .t-form .radio {
     display: flex;
@@ -56,21 +66,27 @@
     width: 100%;
     display: flex;
     justify-content: space-evenly;
-    background-color: var(--third);
+    background-color: var(--hover);
     border-radius: 12px;
     color: var(--text);
+    padding: 4px;
+    gap: 4px;
 }
 .utils input, .page input{
-    padding: 8px 15px;
+    padding: 10px 15px;
     width: 100%;
     max-width: 350px;
-    height: 40px ;
-    background-color: transparent;
+    height: 42px ;
+    background-color: var(--surface);
     color: var(--text);
-    border: 1px solid var(--hover);
-    background-color: var(--hover);
-    border-radius: 5px;
+    border: 1px solid var(--main);
+    border-radius: 10px;
     font-size: 15px;
+    transition: border var(--transition), box-shadow var(--transition);
+}
+.utils input:focus, .page input:focus {
+    border-color: var(--second);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.14);
 }
 .page-info {
     display: flex;
@@ -81,8 +97,10 @@
 }
 .page-info  button {
     width: max-content;
-    padding: 5px 10px;
-    border-radius: 3px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    box-shadow: none;
 }
 .page-info  button.disable {
     opacity: 0.4;
@@ -90,20 +108,27 @@
     cursor: not-allowed;
 }
 .type-select div {
-    padding: 7px;font-size: 15px;
+    padding: 9px 12px;
+    font-size: 14px;
+    font-weight: 500;
     text-align: center;
     cursor: pointer;
+    border-radius: 9px;
+    flex: 1;
+    transition: background var(--transition), color var(--transition);
 }
 .type-select.form div  {
     width: 50%;
     margin-top: 25px;
 }
 .type-select div.active {
-    border-bottom: 2px solid var(--second);
-    background-color: var(--hover);
+    background: var(--surface);
+    color: var(--second);
+    box-shadow: var(--shadow-sm);
+    font-weight: 600;
 }
 .type-select div:hover{
-    background-color: var(--hover);
+    color: var(--second);
 }
 
 .t-form .input-box > label {
@@ -117,29 +142,42 @@
 }
 
 table {
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     width: 100%;
     font-size: 14px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
 }
-  
+
 table td, table th {
-    border-bottom: 1px solid var(--hover);
-    padding: 10px 8px;
+    border-bottom: 1px solid var(--main);
+    padding: 14px 12px;
     text-align: left;
 }
 
-table tr:not(:first-of-type):hover {background-color: var(--hover);}
+table tr:not(:first-of-type):hover { background-color: var(--hover); }
 table tr {
-    color: var(--text);    
+    color: var(--text);
+    transition: background var(--transition);
 }
 table tr:first-of-type {
-    border-bottom: 1px solid var(--hover);
+    background: var(--hover);
+    border-bottom: 1px solid var(--main);
 }
 table th {
-    margin-bottom: 10px;
-    font-weight: 500;
-    letter-spacing: 1px;
-    color: var(--second);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    background: transparent;
+    border-bottom: none;
+}
+table tr:last-of-type td {
+    border-bottom: none;
 }
 table .expense, table .income {
     height: 22px;
@@ -181,12 +219,14 @@ table td button{
     display: flex;
 }
 .user-panel .msg-wrapper.success {
-    background-color: rgb(227, 255, 232);
-    color: green;
+    background-color: color-mix(in srgb, var(--success) 12%, var(--surface));
+    color: var(--success);
+    border-radius: var(--radius-sm);
 }
 .user-panel .msg-wrapper.fail {
-    background-color: rgb(255, 227, 227);
-    color: rgb(176, 0, 0);
+    background-color: color-mix(in srgb, var(--danger) 12%, var(--surface));
+    color: var(--danger);
+    border-radius: var(--radius-sm);
 }
 
 .user-panel .msg-wrapper .msg p {
@@ -248,14 +288,21 @@ form select {
     gap: 10px;
 }
 .st-card {
-    background-color: var(--hover);
-    padding: 10px;
+    background-color: var(--surface);
+    padding: 16px;
     flex: 1 1 300px;
-    border-radius: 10px;
+    border-radius: var(--radius);
     color: var(--text);
     display: flex;
     gap: 10px;
     flex-direction: column;
+    border: 1px solid var(--main);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition), box-shadow var(--transition);
+}
+.st-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
 }
 .st-card .topic {
     display: flex;
@@ -312,6 +359,6 @@ form select {
         font-size: 12px;
     }
     .user-panel .user-content {
-        padding: 11vh 17px 20px;
+        padding: 86px 16px 30px;
     }
 } 

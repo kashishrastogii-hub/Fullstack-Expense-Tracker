@@ -26,7 +26,7 @@ function Budget({totalExpense, budgetAmount, saveBudget, currentMonth}) {
         { name: 'Balace', value:  balance}
     ];
 
-    const COLORS2 = ["#ff6464", "#53d37d"];
+    const COLORS2 = ["#f43f5e", "#10b981"];
 
     return (
         <>
@@ -37,27 +37,34 @@ function Budget({totalExpense, budgetAmount, saveBudget, currentMonth}) {
                         (currentMonth.id === new Date().getMonth() + 1) && ( <button onClick={toggleForm}>Edit</button> )
                     }
                 </div>
-                <ResponsiveContainer height={220}>
-                    <PieChart width={50} height={100}>
+                <ResponsiveContainer width="100%" height={240}>
+                    <PieChart>
                         <Pie
                             data={data2}
-                            cx={280}
-                            cy={140}
+                            cx="50%"
+                            cy="80%"
                             startAngle={180}
                             endAngle={0}
                             innerRadius={80}
-                            outerRadius={110}
-                            fill="#8884d8"
-                            paddingAngle={0}
+                            outerRadius={115}
+                            paddingAngle={3}
+                            cornerRadius={6}
                             dataKey="value"
-                            label
                         >
                             {data2.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS2[index]} />
                             ))}
                         </Pie>
                         <Legend />
-                        <Tooltip />
+                        <Tooltip
+                            contentStyle={{
+                                borderRadius: '12px',
+                                border: '1px solid var(--main)',
+                                background: 'var(--surface)',
+                                color: 'var(--text)',
+                                boxShadow: 'var(--shadow)'
+                            }}
+                        />
                     </PieChart>
                 </ResponsiveContainer>
                 <h4>Remaining: {budgetAmount - totalExpense}</h4>

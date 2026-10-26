@@ -24,31 +24,29 @@ function Login() {
     const [isLoading, setIsLoading] = useState(false);
 
     const onSubmit = async (data) => {
-        setIsLoading(true)        
-        await AuthService.login_req(data.email, data.password).then(
-            () => {
-                setResponseError("");
+        setIsLoading(true)
+        try {
+            await AuthService.login_req(data.email, data.password);
+            setResponseError("");
 
-                setTimeout(() => {
-                    if (AuthService.getCurrentUser().roles.includes("ROLE_USER")) {
-                        navigate("/user/dashboard");
-                    }else if (AuthService.getCurrentUser().roles.includes("ROLE_ADMIN")) {
-                        navigate("/admin/transactions");
-                    }
-                }, 5000)
-                localStorage.setItem("message", JSON.stringify({ status: "SUCCESS", text: "Login successfull!" }))
-            },
-            (error) => {
-                const resMessage =(error.response && error.response.data && error.response.data.message) || error.message || error.toString();
-                console.log(resMessage);
-                if (resMessage === "Bad credentials"){
-                    setResponseError("Invalid email or password!");
-                }else {
-                    setResponseError("Something went wrong: Try again later!");
-                }
+            const currentUser = AuthService.getCurrentUser();
+            localStorage.setItem("message", JSON.stringify({ status: "SUCCESS", text: "Login successful!" }));
+
+            if (currentUser && currentUser.roles.includes("ROLE_USER")) {
+                navigate("/user/dashboard");
+            } else if (currentUser && currentUser.roles.includes("ROLE_ADMIN")) {
+                navigate("/admin/transactions");
             }
-          );
-        setIsLoading(false);
+        } catch (error) {
+            const resMessage = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
+            if (resMessage === "Bad credentials") {
+                setResponseError("Invalid email or password!");
+            } else {
+                setResponseError("Something went wrong: Try again later!");
+            }
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     return(

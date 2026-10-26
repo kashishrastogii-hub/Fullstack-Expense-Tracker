@@ -1,5 +1,6 @@
 package com.fullStack.expenseTracker.security;
 
+import com.fullStack.expenseTracker.config.RateLimitConfig;
 import com.fullStack.expenseTracker.security.jwt.AuthEntryPointJwt;
 import com.fullStack.expenseTracker.security.jwt.AuthTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,7 @@ public class WebSecurityConfig {
     }
 
     @Autowired
-    private RateLimitFilter rateLimitFilter;
+    private RateLimitConfig rateLimitConfig;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -60,19 +61,19 @@ public class WebSecurityConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/mywallet/auth/**").permitAll()
-                                .requestMatchers("/mywallet/transactiontype/**").permitAll()
-                                .requestMatchers("/mywallet/category/**").permitAll()
+                        auth.requestMatchers("/api/auth/**").permitAll()
+                                .requestMatchers("/api/transactiontype/**").permitAll()
+                                .requestMatchers("/api/category/**").permitAll()
                                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                                .requestMatchers("/mywallet/transaction/**").permitAll()
-                                .requestMatchers("/mywallet/user/**").permitAll()
+                                .requestMatchers("/api/transaction/**").permitAll()
+                                .requestMatchers("/api/user/**").permitAll()
                                 .anyRequest().authenticated()
                 );
 
         http.authenticationProvider(authenticationProvider());
 
-        http.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new RateLimitFilter(rateLimitConfig), UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

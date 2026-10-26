@@ -1,4 +1,4 @@
-<h1 align="center">🌟 My Wallet - Expense tracking app 🌟</h1>
+<h1 align="center">🌟 PocketWise - Expense tracking app 🌟</h1>
 
 <p align="center">
   <img alt="Static Badge" src="https://img.shields.io/badge/Spring%20Boot-darkgreen?style=for-the-badge">
@@ -66,7 +66,7 @@ Or configure `src/main/resources/application.properties`. You can override via e
 ```
 On Windows, use `mvnw.cmd spring-boot:run`.
 
-The backend runs on [`http://localhost:8080`](http://localhost:8080). API base path is `/mywallet`.
+The backend runs on [`http://localhost:8080`](http://localhost:8080). API base path is `/api`.
 
 **Initial setup notes:**
 - Add categories manually in the `categories` table for both `expense` and `income` types.

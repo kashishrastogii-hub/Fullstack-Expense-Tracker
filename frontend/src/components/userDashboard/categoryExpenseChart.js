@@ -2,34 +2,41 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recha
 
 
 function CategoryExpenseChart({ categorySummary }) {
-    const COLORS = ["#ff6e6e", "#ffb26e", "#e6cd10", "#00a33c", "#6ea1ff", "#a36eff", "#ff6eff", "#6ee0ff", "#676d6e"];
+    const COLORS = ["#6366f1", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#06b6d4", "#f43f5e", "#84cc16", "#64748b"];
 
     return (
         <div className='chart'>
-            <ResponsiveContainer>
-                <PieChart width={50} height={100}>
+            <h4>Expenses by category</h4>
+            <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
                     <Pie
                         data={categorySummary}
-                        cx={280}
-                        cy={135}
-                        innerRadius={80}
-                        outerRadius={110}
-                        fill="#8884d8"
-                        paddingAngle={0}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={70}
+                        outerRadius={100}
+                        fill="#6366f1"
+                        paddingAngle={3}
+                        cornerRadius={6}
                         dataKey="amount"
-                        label
                     >
                         {categorySummary.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                     </Pie>
                     <Legend dataKey='category' />
-                    <Tooltip />
+                    <Tooltip
+                        contentStyle={{
+                            borderRadius: '12px',
+                            border: '1px solid var(--main)',
+                            background: 'var(--surface)',
+                            color: 'var(--text)',
+                            boxShadow: 'var(--shadow)'
+                        }}
+                    />
                 </PieChart>
             </ResponsiveContainer>
         </div>
-
-
     )
 }
 
