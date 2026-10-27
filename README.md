@@ -245,6 +245,12 @@ provider. Gmail requires an app password.
 
 ### 3. Create the Render web service
 
+Fast path: this repository contains a [`render.yaml`](render.yaml) Blueprint. In Render choose
+*New +* -> *Blueprint*, connect the repository and fill in the values marked `sync: false`
+(database and SMTP credentials). Render generates the JWT secret for you.
+
+Manual path:
+
 1. Push this repository to GitHub.
 2. In Render: *New +* -> *Web Service* -> connect the repository.
 3. Runtime: **Docker**. Render detects the `Dockerfile` at the repository root.
@@ -267,7 +273,7 @@ provider. Gmail requires an app password.
 | `CORS_ALLOWED_ORIGINS` | leave empty (same origin) | optional |
 | `USER_PROFILE_UPLOAD_DIR` | `/app/uploads/user/profile` | optional (default) |
 
-`SPRING_PROFILES_ACTIVE=prod` and `PORT` are already set by the image/Render.
+`PORT` is provided by Render. Also set `SPRING_PROFILES_ACTIVE=prod` (the blueprint does this, and the image does not set it).
 
 6. Deploy. On the first boot Flyway creates the schema and the seeder inserts the roles and
    transaction types.

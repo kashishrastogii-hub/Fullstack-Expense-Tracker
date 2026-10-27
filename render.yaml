@@ -1,0 +1,58 @@
+# Render Blueprint for the PocketWise web service.
+#
+#   1. Push this repository to GitHub.
+#   2. Render Dashboard -> New + -> Blueprint -> connect the repository.
+#   3. Fill in the values marked `sync: false` (Aiven database + Brevo SMTP).
+#   4. Apply; Render builds the Dockerfile and starts the service.
+#
+# Secrets are never committed: `generateValue: true` creates a random JWT secret
+# and `sync: false` prompts for the database and mail credentials.
+services:
+  - type: web
+    name: pocketwise
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    autoDeploy: true
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: MAIL_MODE
+        value: smtp
+      - key: MAIL_HOST
+        value: smtp-relay.brevo.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_SMTP_AUTH
+        value: "true"
+      - key: MAIL_SMTP_STARTTLS
+        value: "true"
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: MAIL_SENDER_NAME
+        value: PocketWise
+      - key: CORS_ALLOWED_ORIGINS
+        value: ""
+      - key: MAX_RAM_PERCENTAGE
+        value: "70"
+    # Uploaded avatars live on the container filesystem, which Render wipes on
+    # deploy/restart. Uncomment on a paid plan to keep them:
+    # disk:
+    #   name: uploads
+    #   mountPath: /app/uploads
+    #   sizeGB: 1
