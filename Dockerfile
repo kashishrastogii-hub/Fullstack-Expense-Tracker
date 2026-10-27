@@ -7,10 +7,16 @@ FROM node:20-alpine AS frontend
 
 WORKDIR /app
 # Don't fail the build on ESLint warnings (CRA treats them as errors when CI=true)
-ENV CI=false
+# Prefer IPv4: some Docker Desktop setups resolve npm to IPv6 addresses they cannot reach.
+ENV CI=false \
+    NODE_OPTIONS=--dns-result-order=ipv4first
 
 COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci --no-audit --no-fund
+RUN npm ci --no-audit --no-fund \
+    --fetch-retries=5 \
+    --fetch-retry-mintimeout=20000 \
+    --fetch-retry-maxtimeout=120000 \
+    --fetch-timeout=600000
 
 COPY frontend/ ./
 # Same-origin deployment: the SPA calls /api on the host that serves it
@@ -28,7 +34,10 @@ COPY backend/pom.xml ./
 COPY backend/src ./src
 COPY --from=frontend /app/build ./src/main/resources/static
 
-RUN mvn -B -q -DskipTests package
+RUN mvn -B -q -DskipTests \
+    -Dmaven.wagon.http.retryHandler.count=5 \
+    -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
+    package
 
 # ---------------------------------------------------------------------------
 # 3. Runtime (single container: SPA + REST API)

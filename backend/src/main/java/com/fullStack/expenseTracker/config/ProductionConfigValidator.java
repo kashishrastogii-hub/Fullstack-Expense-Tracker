@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+import java.util.Set;
+
 /**
  * Guards the production profile against silently broken configuration.
  * Development is intentionally allowed to run with console mail and a default JWT secret.
@@ -16,6 +18,12 @@ import org.springframework.context.annotation.Profile;
 public class ProductionConfigValidator {
 
     private static final String DEFAULT_JWT_SECRET = "expense=tracker=pocketwise";
+
+    /** Secrets shipped in docker-compose files; they are public and must never reach production. */
+    private static final Set<String> LOCAL_DEMO_SECRETS = Set.of(
+            DEFAULT_JWT_SECRET,
+            "local-docker-secret-change-me-0123456789abcdef",
+            "MyynTIuydhO7wq+kP38tmGEf0dxawxCURkVc36dfqFjuRVW7+BwYc8lR00QkaA3l");
 
     @Value("${app.jwtSecret:}")
     private String jwtSecret;
@@ -49,9 +57,12 @@ public class ProductionConfigValidator {
             fail("Production requires SMTP credentials: set MAIL_USERNAME and MAIL_PASSWORD, or disable " +
                     "authentication with MAIL_SMTP_AUTH=false when using a relay without authentication.");
         }
-        if (jwtSecret == null || jwtSecret.isBlank() || jwtSecret.contains(DEFAULT_JWT_SECRET) || jwtSecret.length() < 32) {
-            fail("JWT_SECRET is missing or still using the insecure default. Generate one with: " +
-                    "openssl rand -base64 48");
+        if (jwtSecret == null || jwtSecret.isBlank()
+                || jwtSecret.contains(DEFAULT_JWT_SECRET)
+                || LOCAL_DEMO_SECRETS.contains(jwtSecret.trim())
+                || jwtSecret.trim().length() < 32) {
+            fail("JWT_SECRET is missing, too short, or still the local demo default. " +
+                    "Generate one with: openssl rand -base64 48 (or use a passphrase of at least 32 characters).");
         }
 
         log.info("Production configuration validated (mail mode: {}, SMTP auth: {}).",

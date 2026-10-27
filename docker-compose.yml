@@ -19,7 +19,8 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
       MYSQL_DATABASE: ${DB_NAME:-expense_tracker}
     ports:
-      - "3306:3306"
+      # Host 3307 so a locally installed MySQL on 3306 keeps working.
+      - "3307:3306"
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
@@ -44,8 +45,9 @@ services:
       DB_USERNAME: root
       DB_PASSWORD: ${DB_PASSWORD:-root}
       MAIL_MODE: console
-      # Override in a local .env file if you want a different secret.
-      JWT_SECRET: ${JWT_SECRET:-local-docker-secret-change-me-0123456789abcdef}
+      # Demo-only secret (public in this repo). Override it in a local .env file.
+      # Production refuses to start with this value.
+      JWT_SECRET: ${JWT_SECRET:-MyynTIuydhO7wq+kP38tmGEf0dxawxCURkVc36dfqFjuRVW7+BwYc8lR00QkaA3l}
       USER_PROFILE_UPLOAD_DIR: /app/uploads/user/profile
       CORS_ALLOWED_ORIGINS: http://localhost:8080
     volumes:

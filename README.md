@@ -170,6 +170,28 @@ docker compose up --build
 
 Open <http://localhost:8080>. Verification codes are printed by `docker compose logs -f app`.
 
+MySQL is published on host port **3307** (not 3306) so an already-running local MySQL keeps working.
+The app always reaches the database over the compose network at `db:3306`.
+
+To test the exact image production uses (prod profile, Flyway-managed schema, real SMTP), run the
+same stack against [Mailpit](https://mailpit.axllent.org/):
+
+```sh
+export JWT_SECRET="$(openssl rand -base64 48)"
+docker compose exec db mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS pocketwise_prod;"
+docker compose -f docker-compose.yml -f docker-compose.prod-test.yml up -d --build
+```
+
+On PowerShell, set the secret first:
+
+```powershell
+$b = New-Object byte[] 48; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b)
+$env:JWT_SECRET = [Convert]::ToBase64String($b)
+```
+
+Then sign up at <http://localhost:8080> and read the email at <http://localhost:8025>. The override
+file is test-only: it delivers mail to a local Mailpit container and disables SMTP auth/TLS.
+
 To run only the image against your own database:
 
 ```sh
@@ -234,7 +256,7 @@ provider. Gmail requires an app password.
 | `DB_URL` | `jdbc:mysql://HOST:PORT/defaultdb?sslMode=REQUIRED` | yes |
 | `DB_USERNAME` | `avnadmin` | yes |
 | `DB_PASSWORD` | `...` | yes |
-| `JWT_SECRET` | output of `openssl rand -base64 48` | yes, at least 32 characters |
+| `JWT_SECRET` | output of `openssl rand -base64 48`, or a passphrase of 32+ characters | yes |
 | `MAIL_MODE` | `smtp` | yes |
 | `MAIL_HOST` | `smtp-relay.brevo.com` | yes |
 | `MAIL_PORT` | `587` | yes |
@@ -278,7 +300,7 @@ All values can be set in `backend/.env` or as environment variables.
 | `DB_USERNAME` | `root` | Database user |
 | `DB_PASSWORD` | empty | Database password |
 | `DB_POOL_SIZE` | `5` | Hikari maximum pool size (prod) |
-| `JWT_SECRET` | insecure default | Must be at least 32 characters in production |
+| `JWT_SECRET` | insecure default | At least 32 characters; Base64 or a plain passphrase (prod rejects the demo defaults) |
 | `JWT_EXPIRATION_MS` | `86400000` | Token lifetime (24 h) |
 | `MAIL_MODE` | `auto` | `auto`, `console` or `smtp` |
 | `MAIL_HOST` | `smtp.gmail.com` | SMTP host |

@@ -1,0 +1,39 @@
+# Run the image exactly as Render does: prod profile, real SMTP, schema owned by Flyway.
+#
+#   export JWT_SECRET="$(openssl rand -base64 48)"
+#   docker compose exec db mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS pocketwise_prod;"
+#   docker compose -f docker-compose.yml -f docker-compose.prod-test.yml up -d --build
+#
+# App:     http://localhost:8080
+# Mailbox: http://localhost:8025 (Mailpit) - verification emails are delivered here
+#
+# This overrides the dev settings from docker-compose.yml. Test only: it delivers mail to a
+# local Mailpit instance and disables SMTP auth/TLS.
+
+services:
+  app:
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:mysql://db:3306/pocketwise_prod?allowPublicKeyRetrieval=true&useSSL=false
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:-root}
+      MAIL_MODE: smtp
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      MAIL_SMTP_AUTH: "false"
+      MAIL_SMTP_STARTTLS: "false"
+      MAIL_FROM: no-reply@pocketwise.test
+      MAIL_SENDER_NAME: PocketWise
+      # Required: generate one with `openssl rand -base64 48` (it must not be a repo default).
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET before running the prod test, e.g. openssl rand -base64 48}
+      CORS_ALLOWED_ORIGINS: ""
+    depends_on:
+      mailpit:
+        condition: service_started
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: pocketwise-mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
