@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -40,20 +41,27 @@ public class ProductionConfigValidator {
     @Value("${spring.mail.properties.mail.smtp.auth:true}")
     private boolean smtpAuth;
 
+    @Value("${brevo.api.key:}")
+    private String brevoApiKey;
+
     @PostConstruct
     void validate() {
         boolean mailConfigured = !smtpAuth
                 || (!isBlank(mailUsername) && !isBlank(mailPassword));
-        String mode = mailMode == null ? "auto" : mailMode.trim().toLowerCase();
+        String mode = mailMode == null ? "auto" : mailMode.trim().toLowerCase(Locale.ROOT);
 
-        if (!"auto".equals(mode) && !"console".equals(mode) && !"smtp".equals(mode)) {
-            fail("MAIL_MODE must be one of auto, console or smtp (got '" + mailMode + "').");
+        if (!"auto".equals(mode) && !"console".equals(mode) && !"smtp".equals(mode) && !"api".equals(mode)) {
+            fail("MAIL_MODE must be one of auto, console, smtp or api (got '" + mailMode + "').");
         }
         if ("console".equals(mode)) {
             fail("MAIL_MODE=console is not allowed in production: verification emails would never be delivered. " +
                     "Configure an SMTP provider and use MAIL_MODE=smtp (or auto).");
         }
-        if (!"console".equals(mode) && !mailConfigured) {
+        if ("api".equals(mode)) {
+            if (isBlank(brevoApiKey)) {
+                fail("MAIL_MODE=api requires BREVO_API_KEY to be set.");
+            }
+        } else if (!"console".equals(mode) && !mailConfigured) {
             fail("Production requires SMTP credentials: set MAIL_USERNAME and MAIL_PASSWORD, or disable " +
                     "authentication with MAIL_SMTP_AUTH=false when using a relay without authentication.");
         }
@@ -65,8 +73,12 @@ public class ProductionConfigValidator {
                     "Generate one with: openssl rand -base64 48 (or use a passphrase of at least 32 characters).");
         }
 
-        log.info("Production configuration validated (mail mode: {}, SMTP auth: {}).",
-                mode, smtpAuth ? "enabled" : "disabled");
+        if ("api".equals(mode)) {
+            log.info("Production configuration validated (mail mode: api).");
+        } else {
+            log.info("Production configuration validated (mail mode: {}, SMTP auth: {}).",
+                    mode, smtpAuth ? "enabled" : "disabled");
+        }
     }
 
     private void fail(String message) {

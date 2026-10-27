@@ -49,7 +49,7 @@ public class EmailNotificationService implements NotificationService {
         String mode = mailMode == null ? "auto" : mailMode.trim().toLowerCase(Locale.ROOT);
         this.consoleMode = switch (mode) {
             case "console" -> true;
-            case "smtp" -> false;
+            case "api", "smtp" -> false;
             default -> !canSend;
         };
 

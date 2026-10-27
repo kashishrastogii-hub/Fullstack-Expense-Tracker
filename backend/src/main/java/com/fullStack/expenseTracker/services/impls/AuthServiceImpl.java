@@ -38,8 +38,17 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
+    @Autowired(required = false)
     private NotificationService notificationService;
+
+    @Autowired(required = false)
+    private EmailNotificationService emailNotificationService;
+
+    @Autowired(required = false)
+    private BrevoApiMailService brevoApiMailService;
+
+    @org.springframework.beans.factory.annotation.Value("${app.mail.mode:auto}")
+    private String mailMode;
 
     @Autowired
     RoleFactory roleFactory;
@@ -71,7 +80,7 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
 
         try {
-            notificationService.sendUserRegistrationVerificationEmail(user);
+            sendRegistrationEmail(user);
         } catch (Exception e) {
             // Roll back the insert so the address is not left blocked by a half-created account.
             log.error("Could not send the verification email to {}: {}", user.getEmail(), e.getMessage(), e);
@@ -126,7 +135,7 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
 
         try {
-            notificationService.sendUserRegistrationVerificationEmail(user);
+            sendRegistrationEmail(user);
         } catch (Exception e) {
             log.error("Could not resend the verification email to {}: {}", email, e.getMessage(), e);
             throw new EmailDeliveryException(
@@ -150,7 +159,7 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
 
         try {
-            notificationService.sendForgotPasswordVerificationEmail(user);
+            sendForgotPasswordEmail(user);
         } catch (Exception e) {
             log.error("Could not send the password reset email to {}: {}", email, e.getMessage(), e);
             throw new EmailDeliveryException(
@@ -274,6 +283,62 @@ public class AuthServiceImpl implements AuthService {
             }
         }
         return roles;
+    }
+
+    private void sendRegistrationEmail(User user) throws Exception {
+        String mode = mailMode == null ? "auto" : mailMode.trim().toLowerCase(java.util.Locale.ROOT);
+        if ("api".equals(mode)) {
+            if (brevoApiMailService != null) {
+                brevoApiMailService.sendUserRegistrationVerificationEmail(user);
+                return;
+            }
+            throw new EmailDeliveryException("Brevo API mail service is not configured.");
+        }
+        if (emailNotificationService != null && notificationService == null) {
+            emailNotificationService.sendUserRegistrationVerificationEmail(user);
+            return;
+        }
+        if (notificationService != null) {
+            notificationService.sendUserRegistrationVerificationEmail(user);
+            return;
+        }
+        if (brevoApiMailService != null) {
+            brevoApiMailService.sendUserRegistrationVerificationEmail(user);
+            return;
+        }
+        if (emailNotificationService != null) {
+            emailNotificationService.sendUserRegistrationVerificationEmail(user);
+            return;
+        }
+        throw new EmailDeliveryException("No mail service configured.");
+    }
+
+    private void sendForgotPasswordEmail(User user) throws Exception {
+        String mode = mailMode == null ? "auto" : mailMode.trim().toLowerCase(java.util.Locale.ROOT);
+        if ("api".equals(mode)) {
+            if (brevoApiMailService != null) {
+                brevoApiMailService.sendForgotPasswordVerificationEmail(user);
+                return;
+            }
+            throw new EmailDeliveryException("Brevo API mail service is not configured.");
+        }
+        if (emailNotificationService != null && notificationService == null) {
+            emailNotificationService.sendForgotPasswordVerificationEmail(user);
+            return;
+        }
+        if (notificationService != null) {
+            notificationService.sendForgotPasswordVerificationEmail(user);
+            return;
+        }
+        if (brevoApiMailService != null) {
+            brevoApiMailService.sendForgotPasswordVerificationEmail(user);
+            return;
+        }
+        if (emailNotificationService != null) {
+            emailNotificationService.sendForgotPasswordVerificationEmail(user);
+            return;
+        }
+        throw new EmailDeliveryException("No mail service configured.");
     }
 
 
