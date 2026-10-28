@@ -385,6 +385,3 @@ Admin's stuff
 ![Screenshot 2024-04-18 092805](https://github.com/DharshiBalasubramaniyam/Fullstack-Expense-Tracker/assets/139672976/aa94d2da-0080-421b-a191-d2ff9fb4472f)
 ![Screenshot 2024-04-18 092822](https://github.com/DharshiBalasubramaniyam/Fullstack-Expense-Tracker/assets/139672976/6cb49c2c-8317-4cec-ad16-b9496d97b16f)
 
-## Credits
-
-Originally created by [Dharshi Balasubramaniyam](https://github.com/DharshiBalasubramaniyam/Fullstack-Expense-Tracker).
