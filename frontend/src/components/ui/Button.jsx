@@ -10,17 +10,18 @@ const Button = ({
   disabled = false,
   loading = false,
   className = '',
+  type = 'button',
   ...props 
 }) => {
   const classes = [
     'btn-ui',
-    tn-ui--,
-    tn-ui--,
+    'btn-ui--' + variant,
+    'btn-ui--' + size,
     className
   ].filter(Boolean).join(' ');
 
   return (
-    <button className={classes} disabled={disabled || loading} {...props}>
+    <button type={type} className={classes} disabled={disabled || loading} {...props}>
       {loading && <span className='btn-ui__spinner'></span>}
       {!loading && Icon && iconPosition === 'left' && <Icon size={18} className='btn-ui__icon' />}
       <span className='btn-ui__text'>{children}</span>

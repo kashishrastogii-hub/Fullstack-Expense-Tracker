@@ -1,28 +1,57 @@
-import incomeImg from '../../assets/images/income.png'
-import expenseImg from '../../assets/images/expense.png'
-import cashInHandImg from '../../assets/images/cashInHand.png'
-import transactionImg from '../../assets/images/transaction.png'
+﻿import { ArrowDownRight, ArrowUpRight, Wallet, Receipt } from 'lucide-react';
+import './dashboardDetailBox.css';
 
-function DashboardDetailBox({ total_income, total_expense, cash_in_hand, no_of_transactions }) {
-
+function DashboardDetailBox({ total_expense, total_income, cash_in_hand, no_of_transactions }) {
     return (
-        <div className='details'>
-            <Box amount={'Rs. ' + total_income} src={incomeImg} title="Income"/>
-            <Box amount={'Rs. ' + total_expense} src={expenseImg} title="Expense"/>
-            <Box amount={'Rs. ' + cash_in_hand} src={cashInHandImg} title="Cash in hand"/>
-            <Box amount={no_of_transactions} src={transactionImg} title="No of transactions"/>
-        </div>
-    )
-}
-
-function Box({amount, src, title}) {
-    return (
-        <div>
-            <div>
-                <h2>{amount}</h2>
-                <h4>{title}</h4>
+        <div className='stats-grid'>
+            <div className='stat-card stat-card--income'>
+                <div className='stat-card__header'>
+                    <div className='stat-card__icon stat-card__icon--income'>
+                        <ArrowUpRight size={22} />
+                    </div>
+                    <span className='stat-card__trend stat-card__trend--up'>+12.5%</span>
+                </div>
+                <div className='stat-card__body'>
+                    <p className='stat-card__label'>Total Income</p>
+                    <h2 className='stat-card__value'>₹{total_income?.toLocaleString() || 0}</h2>
+                </div>
             </div>
-            <img src={src}/>
+            <div className='stat-card stat-card--expense'>
+                <div className='stat-card__header'>
+                    <div className='stat-card__icon stat-card__icon--expense'>
+                        <ArrowDownRight size={22} />
+                    </div>
+                    <span className='stat-card__trend stat-card__trend--down'>+8.2%</span>
+                </div>
+                <div className='stat-card__body'>
+                    <p className='stat-card__label'>Total Expenses</p>
+                    <h2 className='stat-card__value'>₹{total_expense?.toLocaleString() || 0}</h2>
+                </div>
+            </div>
+            <div className='stat-card stat-card--balance'>
+                <div className='stat-card__header'>
+                    <div className='stat-card__icon stat-card__icon--balance'>
+                        <Wallet size={22} />
+                    </div>
+                    <span className='stat-card__trend'>This month</span>
+                </div>
+                <div className='stat-card__body'>
+                    <p className='stat-card__label'>Net Balance</p>
+                    <h2 className='stat-card__value'>₹{cash_in_hand?.toLocaleString() || 0}</h2>
+                </div>
+            </div>
+            <div className='stat-card stat-card--transactions'>
+                <div className='stat-card__header'>
+                    <div className='stat-card__icon stat-card__icon--transactions'>
+                        <Receipt size={22} />
+                    </div>
+                    <span className='stat-card__trend'>This month</span>
+                </div>
+                <div className='stat-card__body'>
+                    <p className='stat-card__label'>Transactions</p>
+                    <h2 className='stat-card__value'>{no_of_transactions || 0}</h2>
+                </div>
+            </div>
         </div>
     )
 }
