@@ -34,11 +34,14 @@ function Login() {
                 navigate("/admin/transactions");
             }
         } catch (error) {
+            console.error('Login error:', error);
             const resMessage = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
-            if (resMessage === "Bad credentials") {
+            if (resMessage === "Bad credentials" || resMessage.includes("Bad credentials")) {
+                setResponseError("Invalid email or password!");
+            } else if (error.response?.status === 401) {
                 setResponseError("Invalid email or password!");
             } else {
-                setResponseError("Something went wrong: Try again later!");
+                setResponseError("Something went wrong. Please try again.");
             }
         } finally {
             setIsLoading(false);
