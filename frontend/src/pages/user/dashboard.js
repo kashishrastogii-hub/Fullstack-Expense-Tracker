@@ -21,10 +21,13 @@ function Dashboard() {
         saveBudget, isLoading, isError] = useDashboard(currentMonth)
 
     useEffect(() => {
-        UserService.getAllTransactions().then((response) => {
-            const txns = response.data.transactions || [];
-            setRecentTransactions(txns.slice(0, 5));
-        }).catch(() => {});
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.email && UserService.get_transactions) {
+            UserService.get_transactions(user.email, 0, 5, '', 'transactionDate', 'desc', null).then((response) => {
+                const txns = response.data?.transactions || [];
+                setRecentTransactions(Array.isArray(txns) ? txns.slice(0, 5) : []);
+            }).catch(() => {});
+        }
     }, []);
 
     const onMonthChange = (id) => {
