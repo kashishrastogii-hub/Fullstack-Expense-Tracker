@@ -37,9 +37,25 @@ const UserStatistics = lazy(() => import('./pages/user/statistics.js'))
 
 function App() {
 
-    const ProtectedRoute = ({ isAllowed, redirectPath = '/unauthorized', children }) => {
-        if (!isAllowed) {
-            return <Navigate to={redirectPath} replace />;
+    const ProtectedRoute = ({ requireAuth = false, requireRole = null, redirectPath = '/unauthorized', children }) => {
+        const currentUser = AuthService.getCurrentUser();
+        
+        if (requireAuth && !currentUser) {
+            return <Navigate to="/auth/login" replace />;
+        }
+        
+        if (requireRole && currentUser) {
+            const roles = currentUser.roles || [];
+            if (!roles.includes(requireRole)) {
+                return <Navigate to={redirectPath} replace />;
+            }
+        }
+        
+        if (!requireAuth && !requireRole && currentUser) {
+            if (currentUser.roles && currentUser.roles.includes("ROLE_ADMIN")) {
+                return <Navigate to="/admin/transactions" replace />;
+            }
+            return <Navigate to="/user/dashboard" replace />;
         }
 
         return children ? children : <Outlet />
@@ -49,7 +65,7 @@ function App() {
         <Suspense fallback={<LoadingSpinner />}>
             <ThemeProvider>
                 <Routes>
-                    <Route element={<ProtectedRoute isAllowed={!AuthService.getCurrentUser()} />}>
+                    <Route element={<ProtectedRoute requireAuth={false} />}>
                         <Route path="/auth/userRegistrationVerfication/:email" element={<UserRegistrationVerfication />} />
                         <Route path="/auth/success-registration" element={<RegistrationSuccess />} />
                         <Route path='/auth/forgetpassword/verifyEmail' element={<ForgotPasswordEmailVerfication />} />
@@ -57,7 +73,7 @@ function App() {
                         <Route path='/auth/forgotPassword/resetPassword/:email/:code' element={<ForgotPasswordChangePassword />} />
                     </Route>
 
-                    <Route element={<ProtectedRoute isAllowed={AuthService.getCurrentUser() && AuthService.getCurrentUser().roles.includes("ROLE_USER")} />}>
+                    <Route element={<ProtectedRoute requireAuth={true} requireRole="ROLE_USER" />}>
                         <Route element={<AppShell><Outlet /></AppShell>}>
                             <Route path="/user/dashboard" element={<Dashboard />} />
                             <Route path="/user/newTransaction" element={<NewTransaction />} />
@@ -71,7 +87,7 @@ function App() {
                         </Route>
                     </Route>
 
-                    <Route element={<ProtectedRoute isAllowed={AuthService.getCurrentUser() && AuthService.getCurrentUser().roles.includes("ROLE_ADMIN")} />}>
+                    <Route element={<ProtectedRoute requireAuth={true} requireRole="ROLE_ADMIN" />}>
                         <Route path='/admin/transactions' element={<AdminTransactionsManagement />} />
                         <Route path='/admin/users' element={<AdminUsersManagement />} />
                         <Route path='/admin/categories' element={<AdminCategoriesManagement />} />
