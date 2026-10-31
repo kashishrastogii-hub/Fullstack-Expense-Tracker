@@ -1,15 +1,12 @@
-import './dashboard-premium.css';
-import { useState } from 'react';
-import CategoryExpenseChart from '../../components/userDashboard/categoryExpenseChart';
-import Budget from '../../components/userDashboard/budget';
+﻿import './dashboard-premium.css';
+import { useState, useEffect } from 'react';
 import useDashboard from '../../hooks/useDashboard';
 import Loading from '../../components/utils/loading';
 import toast, { Toaster } from 'react-hot-toast';
-import { Calendar, PlusCircle, ArrowUpRight, ArrowDownRight, Wallet, PiggyBank, BarChart3, Receipt, FileText, Target } from 'lucide-react';
+import { Calendar, PlusCircle, ArrowUpRight, ArrowDownRight, Wallet, PiggyBank } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import UserService from '../../services/userService';
-import { useEffect } from 'react';
 
 function Dashboard() {
     const navigate = useNavigate();
@@ -17,8 +14,7 @@ function Dashboard() {
     const [currentMonth, setMonth] = useState(months[0])
     const [recentTransactions, setRecentTransactions] = useState([]);
 
-    const [total_expense, total_income, cash_in_hand, no_of_transactions, categorySummary, budgetAmount,
-        saveBudget, isLoading, isError] = useDashboard(currentMonth)
+    const [total_expense, total_income, cash_in_hand, no_of_transactions, isLoading, isError] = useDashboard(currentMonth)
 
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -32,12 +28,12 @@ function Dashboard() {
 
     const onMonthChange = (id) => {
         const month = months.find(m => m.id == id)
-        setMonth(month)
+        if (month) setMonth(month)
     }
 
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
     const greeting = getGreeting();
-    const savings = total_income - total_expense;
+    const savings = (total_income || 0) - (total_expense || 0);
     const savingsPercent = total_income > 0 ? ((savings / total_income) * 100).toFixed(1) : 0;
 
     return (
@@ -67,199 +63,120 @@ function Dashboard() {
             {isError && toast.error("Failed to fetch information. Try again later!")}
 
             {!isLoading && (
-                <>
-                    <div className="dashboard-summary-grid">
-                        <div className="dashboard-summary-card">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div className="dashboard-summary-grid" style={{ gap: '12px' }}>
+                        <div className="dashboard-summary-card" style={{ padding: '16px' }}>
                             <div className="dashboard-summary-card__header">
                                 <div className="dashboard-summary-card__icon dashboard-summary-card__icon--balance">
-                                    <Wallet size={24} />
+                                    <Wallet size={20} />
                                 </div>
                             </div>
                             <div>
-                                <p className="dashboard-summary-card__label">Total Balance</p>
-                                <h2 className="dashboard-summary-card__value">₹{cash_in_hand?.toLocaleString() || 0}</h2>
-                                <p className="dashboard-summary-card__trend">Net for {currentMonth.monthName}</p>
+                                <p className="dashboard-summary-card__label">Balance</p>
+                                <h2 className="dashboard-summary-card__value" style={{ fontSize: '1.5rem' }}>₹{(cash_in_hand || 0).toLocaleString()}</h2>
                             </div>
                         </div>
-                        <div className="dashboard-summary-card">
+                        <div className="dashboard-summary-card" style={{ padding: '16px' }}>
                             <div className="dashboard-summary-card__header">
                                 <div className="dashboard-summary-card__icon dashboard-summary-card__icon--income">
-                                    <ArrowUpRight size={24} />
+                                    <ArrowUpRight size={20} />
                                 </div>
                             </div>
                             <div>
-                                <p className="dashboard-summary-card__label">Total Income</p>
-                                <h2 className="dashboard-summary-card__value">₹{total_income?.toLocaleString() || 0}</h2>
-                                <p className="dashboard-summary-card__trend">{no_of_transactions} transactions</p>
+                                <p className="dashboard-summary-card__label">Income</p>
+                                <h2 className="dashboard-summary-card__value" style={{ fontSize: '1.5rem' }}>₹{(total_income || 0).toLocaleString()}</h2>
                             </div>
                         </div>
-                        <div className="dashboard-summary-card">
+                        <div className="dashboard-summary-card" style={{ padding: '16px' }}>
                             <div className="dashboard-summary-card__header">
                                 <div className="dashboard-summary-card__icon dashboard-summary-card__icon--expense">
-                                    <ArrowDownRight size={24} />
+                                    <ArrowDownRight size={20} />
                                 </div>
                             </div>
                             <div>
-                                <p className="dashboard-summary-card__label">Total Expenses</p>
-                                <h2 className="dashboard-summary-card__value">₹{total_expense?.toLocaleString() || 0}</h2>
-                                <p className="dashboard-summary-card__trend">This month</p>
+                                <p className="dashboard-summary-card__label">Expenses</p>
+                                <h2 className="dashboard-summary-card__value" style={{ fontSize: '1.5rem' }}>₹{(total_expense || 0).toLocaleString()}</h2>
                             </div>
                         </div>
-                        <div className="dashboard-summary-card">
+                        <div className="dashboard-summary-card" style={{ padding: '16px' }}>
                             <div className="dashboard-summary-card__header">
                                 <div className="dashboard-summary-card__icon dashboard-summary-card__icon--savings">
-                                    <PiggyBank size={24} />
+                                    <PiggyBank size={20} />
                                 </div>
                             </div>
                             <div>
                                 <p className="dashboard-summary-card__label">Savings</p>
-                                <h2 className="dashboard-summary-card__value">₹{savings?.toLocaleString() || 0}</h2>
-                                <p className="dashboard-summary-card__trend">{savingsPercent}% of income</p>
+                                <h2 className="dashboard-summary-card__value" style={{ fontSize: '1.5rem' }}>₹{savings.toLocaleString()}</h2>
+                                <p className="dashboard-summary-card__trend">{savingsPercent}%</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="dashboard-main-grid">
-                        <div className="dashboard-grid-left">
-                            <div className="dashboard-card">
-                                <div className="dashboard-card__header">
-                                    <div className="dashboard-card__title-group">
-                                        <h3>Income vs Expenses</h3>
-                                        <p className="dashboard-card__description">Monthly comparison</p>
-                                    </div>
+                    <div className="dashboard-card">
+                        <div className="dashboard-card__header" style={{ padding: '14px 18px 10px' }}>
+                            <div className="dashboard-card__title-group">
+                                <h3 style={{ fontSize: '15px' }}>Income vs Expenses</h3>
+                            </div>
+                        </div>
+                        <div className="dashboard-card__content" style={{ padding: '0 18px 14px' }}>
+                            <div style={{ display: 'flex', gap: '28px', alignItems: 'center', justifyContent: 'center', padding: '14px 10px', flexWrap: 'wrap' }}>
+                                <div style={{ textAlign: 'center', minWidth: '90px' }}>
+                                    <p style={{ color: 'var(--success)', fontWeight: 600, marginBottom: '4px', fontSize: '12px' }}>Income</p>
+                                    <p style={{ fontSize: '17px', fontWeight: 700, color: 'var(--success)' }}>₹{(total_income || 0).toLocaleString()}</p>
                                 </div>
-                                <div className="dashboard-card__content">
-                                    <div style={{ display: 'flex', gap: '32px', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
-                                        <div style={{ textAlign: 'center' }}>
-                                            <p style={{ color: 'var(--success)', fontWeight: 600, marginBottom: '8px' }}>Income</p>
-                                            <h2 style={{ fontSize: '28px', color: 'var(--success)' }}>₹{total_income?.toLocaleString()}</h2>
-                                        </div>
-                                        <div style={{ width: '2px', height: '60px', background: 'var(--border)' }}></div>
-                                        <div style={{ textAlign: 'center' }}>
-                                            <p style={{ color: 'var(--warning)', fontWeight: 600, marginBottom: '8px' }}>Expenses</p>
-                                            <h2 style={{ fontSize: '28px', color: 'var(--warning)' }}>₹{total_expense?.toLocaleString()}</h2>
-                                        </div>
-                                    </div>
+                                <div style={{ width: '1px', height: '36px', background: 'var(--border)' }}></div>
+                                <div style={{ textAlign: 'center', minWidth: '90px' }}>
+                                    <p style={{ color: 'var(--warning)', fontWeight: 600, marginBottom: '4px', fontSize: '12px' }}>Expenses</p>
+                                    <p style={{ fontSize: '17px', fontWeight: 700, color: 'var(--warning)' }}>₹{(total_expense || 0).toLocaleString()}</p>
                                 </div>
                             </div>
+                        </div>
+                    </div>
 
-                            <div className="dashboard-charts-row">
-                                <div className="dashboard-card">
-                                    <div className="dashboard-card__header">
-                                        <div className="dashboard-card__title-group">
-                                            <h3>Spending by Category</h3>
-                                            <p className="dashboard-card__description">Expense breakdown</p>
-                                        </div>
-                                    </div>
-                                    <div className="dashboard-card__content">
-                                        <CategoryExpenseChart categorySummary={categorySummary} />
-                                    </div>
-                                </div>
-                                <div className="dashboard-card">
-                                    <div className="dashboard-card__header">
-                                        <div className="dashboard-card__title-group">
-                                            <h3>Budget Overview</h3>
-                                            <p className="dashboard-card__description">Track your spending</p>
-                                        </div>
-                                    </div>
-                                    <div className="dashboard-card__content">
-                                        <Budget totalExpense={total_expense} budgetAmount={budgetAmount} saveBudget={saveBudget} currentMonth={currentMonth} />
-                                    </div>
-                                </div>
+                    <div className="dashboard-card">
+                        <div className="dashboard-card__header" style={{ padding: '14px 18px 10px' }}>
+                            <div className="dashboard-card__title-group">
+                                <h3 style={{ fontSize: '15px' }}>Recent Transactions</h3>
+                                <p className="dashboard-card__description">Latest activity</p>
                             </div>
-
-                            <div className="dashboard-card">
-                                <div className="dashboard-card__header">
-                                    <div className="dashboard-card__title-group">
-                                        <h3>Recent Transactions</h3>
-                                        <p className="dashboard-card__description">Latest activity</p>
-                                    </div>
-                                    <Button variant="ghost" onClick={() => navigate('/user/transactions')}>View all</Button>
-                                </div>
-                                <div className="dashboard-card__content">
-                                {recentTransactions.length > 0 ? (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                        {recentTransactions.map((tx, idx) => (
-                                            <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--surface-hover)', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                    <div style={{ width: '36px', height: '36px', borderRadius: 'var(--radius)', background: tx.transactionType === 'INCOME' ? 'rgba(52,211,153,0.15)' : 'rgba(251,191,36,0.15)', color: tx.transactionType === 'INCOME' ? 'var(--success)' : 'var(--warning)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                        {tx.transactionType === 'INCOME' ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
-                                                    </div>
-                                                    <div>
-                                                        <p style={{ fontWeight: 600, fontSize: '14px' }}>{tx.transactionName || tx.categoryName}</p>
-                                                        <p style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>{tx.transactionDate}</p>
-                                                    </div>
-                                                </div>
-                                                <p style={{ fontWeight: 700, color: tx.transactionType === 'INCOME' ? 'var(--success)' : 'var(--warning)' }}>{tx.transactionType === 'INCOME' ? '+' : '-'}₹{tx.amount}</p>
+                            <Button variant="ghost" onClick={() => navigate('/user/transactions')}>View all</Button>
+                        </div>
+                        <div className="dashboard-card__content" style={{ padding: '0 18px 14px' }}>
+                        {recentTransactions.length > 0 ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                {recentTransactions.map((tx, idx) => (
+                                    <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: 'var(--surface-hover)', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <div style={{ width: '32px', height: '32px', borderRadius: 'var(--radius)', background: tx.transactionType === 'INCOME' ? 'rgba(52,211,153,0.15)' : 'rgba(251,191,36,0.15)', color: tx.transactionType === 'INCOME' ? 'var(--success)' : 'var(--warning)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                {tx.transactionType === 'INCOME' ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
                                             </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: '32px' }}>No recent transactions</p>
-                                )}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="dashboard-grid-right">
-                            <div className="dashboard-card">
-                                <div className="dashboard-card__header">
-                                    <div className="dashboard-card__title-group">
-                                        <h3>Quick Actions</h3>
-                                        <p className="dashboard-card__description">Common tasks</p>
-                                    </div>
-                                </div>
-                                <div className="dashboard-card__content">
-                                    <div className="quick-actions">
-                                        <button className="quick-action-btn" onClick={() => navigate('/user/newTransaction')}>
-                                            <div className="quick-action-btn__icon"><PlusCircle size={18} /></div>
-                                            <span>Add Transaction</span>
-                                        </button>
-                                        <button className="quick-action-btn" onClick={() => navigate('/user/transactions')}>
-                                            <div className="quick-action-btn__icon"><Receipt size={18} /></div>
-                                            <span>View All</span>
-                                        </button>
-                                        <button className="quick-action-btn" onClick={() => navigate('/user/statistics')}>
-                                            <div className="quick-action-btn__icon"><BarChart3 size={18} /></div>
-                                            <span>Statistics</span>
-                                        </button>
-                                        <button className="quick-action-btn" onClick={() => navigate('/user/savedTransactions')}>
-                                            <div className="quick-action-btn__icon"><FileText size={18} /></div>
-                                            <span>Templates</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="dashboard-card">
-                                <div className="dashboard-card__header">
-                                    <div className="dashboard-card__title-group">
-                                        <h3>Insights</h3>
-                                        <p className="dashboard-card__description">AI-powered tips</p>
-                                    </div>
-                                </div>
-                                <div className="dashboard-card__content" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    <div style={{ padding: '14px', background: 'var(--info-bg)', border: '1px solid var(--info)', borderRadius: 'var(--radius)', borderLeftWidth: '3px' }}>
-                                        <p style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 500 }}>You have {no_of_transactions} transactions this month</p>
-                                    </div>
-                                    {savings > 0 && (
-                                        <div style={{ padding: '14px', background: 'var(--success-bg)', border: '1px solid var(--success)', borderRadius: 'var(--radius)', borderLeftWidth: '3px' }}>
-                                            <p style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 500 }}>Great! You saved {savingsPercent}% of your income</p>
+                                            <div>
+                                                <p style={{ fontWeight: 600, fontSize: '13px' }}>{tx.transactionName || tx.categoryName || 'Transaction'}</p>
+                                                <p style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{tx.transactionDate}</p>
+                                            </div>
                                         </div>
-                                    )}
-                                    {categorySummary.length > 0 && (
-                                        <div style={{ padding: '14px', background: 'var(--warning-bg)', border: '1px solid var(--warning)', borderRadius: 'var(--radius)', borderLeftWidth: '3px' }}>
-                                            <p style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 500 }}>Top spending: {categorySummary[0]?.name}</p>
-                                        </div>
-                                    )}
-                                </div>
+                                        <p style={{ fontWeight: 700, fontSize: '13px', color: tx.transactionType === 'INCOME' ? 'var(--success)' : 'var(--warning)' }}>{tx.transactionType === 'INCOME' ? '+' : '-'}₹{tx.amount}</p>
+                                    </div>
+                                ))}
                             </div>
+                        ) : (
+                            <div style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: '14px', background: 'var(--surface-hover)', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+                                <p style={{ fontSize: '13px' }}>No recent transactions</p>
+                            </div>
+                        )}
                         </div>
                     </div>
-                </>
+                </div>
             )}
         </div>
     )
+}
+
+function getGreeting() {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
 }
 
 function getMonths() {
@@ -274,13 +191,6 @@ function getMonths() {
         })
     }
     return months;
-}
-
-function getGreeting() {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
 }
 
 export default Dashboard;
