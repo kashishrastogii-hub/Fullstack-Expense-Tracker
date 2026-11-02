@@ -65,11 +65,13 @@ public class TransactionServiceImpl implements TransactionService {
             throws TransactionServiceLogicException {
 
         Sort.Direction direction = Sort.Direction.ASC;
-        if (sortDirec.equalsIgnoreCase("DESC")) {
+        if (sortDirec != null && sortDirec.equalsIgnoreCase("DESC")) {
             direction = Sort.Direction.DESC;
         }
 
-        Pageable pageable =  PageRequest.of(pageNumber, pageSize).withSort(direction, sortField);
+        String sortFieldToUse = (sortField == null || sortField.isEmpty()) ? "date" : sortField;
+
+        Pageable pageable =  PageRequest.of(pageNumber, pageSize).withSort(direction, sortFieldToUse);
 
         Page<Transaction> transactions = transactionRepository.findByUser(email,
                 pageable, searchKey, transactionType);

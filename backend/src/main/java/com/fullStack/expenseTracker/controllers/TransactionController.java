@@ -36,13 +36,13 @@ public class TransactionController {
 
     @GetMapping("/getByUser")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity<ApiResponseDto<?>> getTransactionsByUser(@Param("email") String email,
-                                                                   @Param("pageNumber") int pageNumber,
-                                                                   @Param("pageSize") int pageSize,
-                                                                   @Param("searchKey") String searchKey,
-                                                                   @Param("sortField") String sortField,
-                                                                   @Param("sortDirec") String sortDirec,
-                                                                   @Param("transactionType") String transactionType)
+    public ResponseEntity<ApiResponseDto<?>> getTransactionsByUser(@RequestParam("email") String email,
+                                                                   @RequestParam("pageNumber") int pageNumber,
+                                                                   @RequestParam("pageSize") int pageSize,
+                                                                   @RequestParam(value = "searchKey", required = false) String searchKey,
+                                                                   @RequestParam("sortField") String sortField,
+                                                                   @RequestParam(value = "sortDirec", required = false) String sortDirec,
+                                                                   @RequestParam(value = "transactionType", required = false) String transactionType)
             throws UserNotFoundException, TransactionServiceLogicException {
 
         return transactionService.getTransactionsByUser(email, pageNumber, pageSize, searchKey, sortField, sortDirec, transactionType);

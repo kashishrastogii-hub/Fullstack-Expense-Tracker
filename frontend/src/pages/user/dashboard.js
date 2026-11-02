@@ -14,12 +14,12 @@ function Dashboard() {
     const [currentMonth, setMonth] = useState(months[0])
     const [recentTransactions, setRecentTransactions] = useState([]);
 
-    const [total_expense, total_income, cash_in_hand, no_of_transactions, isLoading, isError] = useDashboard(currentMonth)
+    const [total_expense, total_income, cash_in_hand, no_of_transactions, categorySummary, budgetAmount, chartData, isLoading, isError] = useDashboard(currentMonth)
 
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         if (user.email && UserService.get_transactions) {
-            UserService.get_transactions(user.email, 0, 5, '', 'transactionDate', 'desc', null).then((response) => {
+            UserService.get_transactions(user.email, 0, 5, '', 'date', 'desc', null).then((response) => {
                 const txns = response.data?.transactions || [];
                 setRecentTransactions(Array.isArray(txns) ? txns.slice(0, 5) : []);
             }).catch(() => {});
