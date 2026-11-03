@@ -27,8 +27,9 @@ function usePagination(initialSortField = null) {
     }
 
     return {
-        pageSize, pageNumber, noOfPages, sortField, sortDirec, searchKey,
-        onNextClick, onPrevClick, setNoOfPages, setNoOfRecords, setSortField, setSortDirec, setSearchKey, getPageInfo
+        pageSize, pageNumber, noOfPages, noOfRecords, sortField, sortDirec, searchKey,
+        onNextClick, onPrevClick, setPageNumber, setNoOfPages, setNoOfRecords,
+        setSortField, setSortDirec, setSearchKey, getPageInfo
     }
 }
 
