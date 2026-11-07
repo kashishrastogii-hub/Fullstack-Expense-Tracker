@@ -187,7 +187,7 @@ function Transactions() {
                         icon={PlusCircle}
                         onClick={() => navigate('/user/newTransaction')}
                     >
-                        Add transaction
+                        Add Transaction
                     </Button>
                 </div>
             </header>
@@ -365,7 +365,7 @@ function TransactionsEmpty({ hasFilters, searchKey, transactionType, onClear, on
                     </Button>
                 )}
                 <Button variant='primary' icon={PlusCircle} onClick={onAdd}>
-                    {hasFilters ? 'Add transaction' : 'Add your first transaction'}
+                    {hasFilters ? 'Add Transaction' : 'Add your first transaction'}
                 </Button>
             </div>
         </section>

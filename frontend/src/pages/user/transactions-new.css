@@ -273,6 +273,19 @@ html.dark .transactions-filter__btn.is-active {
   color: var(--text-primary);
 }
 
+/* Keyboard focus (the global reset removes outlines) */
+
+.transactions-search__clear:focus-visible,
+.transactions-filter__btn:focus-visible,
+.transactions-clear:focus-visible,
+.transactions-inline-error button:focus-visible,
+.transactions-pagination .btn-ui:focus-visible,
+.transactions-empty .btn-ui:focus-visible,
+.transactions-state .btn-ui:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
 /* Ledger */
 
 .transactions-ledger {
@@ -844,7 +857,7 @@ html.light .transactions-state__eyebrow {
   }
 
   .transactions-toolbar__meta {
-    margin-left: 0;
+    margin-left: auto;
   }
 }
 
@@ -872,6 +885,7 @@ html.light .transactions-state__eyebrow {
 
   .transactions-toolbar__meta {
     justify-content: space-between;
+    margin-left: 0;
   }
 
   .transactions-sort {
